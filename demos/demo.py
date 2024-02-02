@@ -22,6 +22,7 @@ def run(args):
         for key in db_text.db.keys():
             cur_data_dict[key] = db_text.db[key][i]
         particles_detector.db.update(**cur_data_dict)
+        particles_detector.infer()
     particles_detector.db.plot(pause_time_s=64)
 
 

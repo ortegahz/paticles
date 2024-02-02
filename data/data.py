@@ -50,8 +50,12 @@ class DataTextV0(DataBase):
 class DataRT(DataBase):
     def __init__(self):
         super().__init__()
+        self.max_seq_len = 16384
         self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
+        self.keys_info = ('alarm',)
         for key in self.keys:
+            self.db[key] = list()
+        for key in self.keys_info:
             self.db[key] = list()
         self.seq_len = 0
 
@@ -59,7 +63,11 @@ class DataRT(DataBase):
         for key in cur_data_dict.keys():
             if key in self.keys:
                 self.db[key].append(cur_data_dict[key])
-        self.seq_len += 1
+                self.db[key] = self.db[key][-self.max_seq_len:]
+        for key in self.keys_info:
+            self.db[key].append(0.0)
+            self.db[key] = self.db[key][-self.max_seq_len:]
+        self.seq_len = self.seq_len + 1 if self.seq_len < self.max_seq_len else self.max_seq_len
 
     def plot(self, pause_time_s=0.01, keys_plot=None):
         plt.ion()
@@ -68,6 +76,10 @@ class DataRT(DataBase):
         for key in keys_plot:
             plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
             plt.legend()
+        for key in self.keys_info:
+            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.yticks(np.arange(0, 4096, 4096 / 10))
         mng = plt.get_current_fig_manager()
         mng.resize(*mng.window.maxsize())
         plt.show()
