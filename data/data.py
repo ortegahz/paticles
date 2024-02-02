@@ -33,11 +33,12 @@ class DataTextV0(DataBase):
                 self.db[key].append(cur_data_lst[i])  # must be same order
             self.seq_len += 1
 
-    def plot(self, pause_time_s=0.01):
+    def plot(self, pause_time_s=0.01, keys_plot=None):
         plt.ion()
         time_idxs = range(self.seq_len)
         plt.title(self.path_in)
-        for key in self.db.keys():
+        keys_plot = self.keys if keys_plot is None else keys_plot
+        for key in keys_plot:
             plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
             plt.legend()
         mng = plt.get_current_fig_manager()
