@@ -6,7 +6,8 @@ import numpy as np
 
 class DataBase:
     def __init__(self):
-        pass
+        self.db = dict()
+        self.seq_len = 0
 
 
 class DataTextV0(DataBase):
@@ -14,8 +15,6 @@ class DataTextV0(DataBase):
         super().__init__()
         self.path_in = path_in
         self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
-        self.db = dict()
-        self.seq_len = 0
         for key in self.keys:
             self.db[key] = list()
 

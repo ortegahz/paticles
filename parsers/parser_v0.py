@@ -8,7 +8,7 @@ from utils.utils import set_logging
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in', default='/media/manu/data/docs/particle/MPY22GN2D0012490P_20240131_140535.txt')
-    parser.add_argument('--keys_plot', default=('temper', 'humid'))
+    parser.add_argument('--keys_plot', default=('temper', 'humid', 'forward', 'backward'))
     return parser.parse_args()
 
 
