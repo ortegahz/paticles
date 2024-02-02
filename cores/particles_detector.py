@@ -1,3 +1,6 @@
+from data.data import DataRT
+
+
 class ParticlesDetector:
     def __init__(self):
-        pass
+        self.db = DataRT()

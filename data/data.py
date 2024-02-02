@@ -45,3 +45,31 @@ class DataTextV0(DataBase):
         plt.show()
         plt.pause(pause_time_s)
         plt.clf()
+
+
+class DataRT(DataBase):
+    def __init__(self):
+        super().__init__()
+        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
+        for key in self.keys:
+            self.db[key] = list()
+        self.seq_len = 0
+
+    def update(self, **cur_data_dict):
+        for key in cur_data_dict.keys():
+            if key in self.keys:
+                self.db[key].append(cur_data_dict[key])
+        self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None):
+        plt.ion()
+        time_idxs = range(self.seq_len)
+        keys_plot = self.keys if keys_plot is None else keys_plot
+        for key in keys_plot:
+            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        mng = plt.get_current_fig_manager()
+        mng.resize(*mng.window.maxsize())
+        plt.show()
+        plt.pause(pause_time_s)
+        plt.clf()
