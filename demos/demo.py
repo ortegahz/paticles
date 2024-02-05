@@ -8,7 +8,7 @@ from utils.utils import set_logging
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_in', default='/media/manu/data/docs/particle/MPY22GN2D0012490P_20240131_140535.txt')
+    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/国标测试/PVC_2/MPY22GN2D0012490P_20240202_153925.txt')
     return parser.parse_args()
 
 
