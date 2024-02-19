@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 
@@ -73,6 +74,15 @@ class DataCSVV0(DataBase):
 
         keys = obj_sheet_pick.row_values(0)
         logging.info(keys)
+
+        # TODO
+        if obj_sheet_pick.cell(0, 1).ctype == 1:
+            self.db['time'] = list()
+            for i in range(1, obj_sheet_pick.nrows):
+                time_tuple = xlrd.xldate_as_tuple(obj_sheet_pick.col_values(0)[i], datemode=0)
+                _time_tuple = (1978, 10, 19, *time_tuple[-3:])
+                time_str = datetime.datetime(*_time_tuple).strftime('%Y/%m/%d %H:%M:%S')
+                self.db['time'].append(time_str)
 
         self.db['time'] = obj_sheet_pick.col_values(0)[1:]
         self.db['voc_raw'] = obj_sheet_pick.col_values(1)[1:]
