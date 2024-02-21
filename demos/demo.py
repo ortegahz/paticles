@@ -9,6 +9,7 @@ from utils.utils import set_logging
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in', default='/media/manu/data/docs/particles/国标测试/PVC_2/MPY22GN2D0012490P_20240202_153925.txt')
+    # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/0205测试数据/ABS_普通/样机/ABS.txt')
     return parser.parse_args()
 
 
@@ -23,7 +24,7 @@ def run(args):
             cur_data_dict[key] = db_text.db[key][i]
         particles_detector.db.update(**cur_data_dict)
         particles_detector.infer()
-    particles_detector.db.plot(pause_time_s=64)
+    particles_detector.db.plot(pause_time_s=256)
 
 
 def main():
