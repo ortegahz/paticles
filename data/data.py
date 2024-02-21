@@ -137,9 +137,9 @@ class DataCSVV0(DataBase):
         self.db['co'] = data.values[:, 4]
         self.db['temper'] = data.values[:, 6]
         self.db['humid'] = data.values[:, 7]
-        self.db['pm010'] = data.values[:, 11]
-        self.db['pm025'] = data.values[:, 12]
-        self.db['pm100'] = data.values[:, 13]
+        self.db['pm010'] = data.values[:, 8]
+        self.db['pm025'] = data.values[:, 9]
+        self.db['pm100'] = data.values[:, 10]
         self.db['forward'] = data.values[:, 16]
         self.db['backward'] = data.values[:, 17]
 
