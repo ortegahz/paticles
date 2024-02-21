@@ -7,7 +7,7 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/反例实验/1/41水蒸气+酒精.csv')
+    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/反例实验/2/GP41.csv')
     parser.add_argument('--keys_plot', default=('temper', 'humid', 'forward', 'backward'))
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/parser_save')
     parser.add_argument('--times_pick', default=[('19:48', 'start', 'y'), ('20:16', 'alarm', 'b')])

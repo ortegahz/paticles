@@ -132,6 +132,7 @@ class DataCSVV0(DataBase):
 
     def update(self):
         data = pd.read_csv(self.path_in, header=None)
+        # data = pd.read_csv(self.path_in)
         self.db['time'] = data.values[:, 1]
         self.db['voc'] = data.values[:, 2]
         self.db['co'] = data.values[:, 4]
@@ -168,7 +169,7 @@ class DataCSVV0S(DataCSVV0):
         super(DataCSVV0S, self).__init__(path_in)
 
     def update(self):
-        data = pd.read_csv(self.path_in, header=None)
+        data = pd.read_csv(self.path_in)
         self.db['time'] = data.values[:, 0]
         self.db['voc'] = data.values[:, 5]
 
