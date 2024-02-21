@@ -163,6 +163,19 @@ class DataCSVV0(DataBase):
         plt.clf()
 
 
+class DataCSVV0S(DataCSVV0):
+    def __init__(self, path_in):
+        super(DataCSVV0S, self).__init__(path_in)
+
+    def update(self):
+        data = pd.read_csv(self.path_in, header=None)
+        self.db['time'] = data.values[:, 0]
+        self.db['voc'] = data.values[:, 5]
+
+        for key in self.db.keys():
+            self.seq_len = len(self.db[key]) if len(self.db[key]) > self.seq_len else self.seq_len
+
+
 class DataRT(DataBase):
     def __init__(self):
         super().__init__()
