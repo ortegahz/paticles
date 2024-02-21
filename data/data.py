@@ -1,9 +1,9 @@
-import datetime
 import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import xlrd
 
 
@@ -50,11 +50,11 @@ class DataTextV0(DataBase):
         plt.clf()
 
 
-class DataCSVV0(DataBase):
+class DataXLSV0(DataBase):
     def __init__(self, path_in):
         super().__init__()
         self.path_in = path_in
-        self.db = dict()
+        # self.db = dict()
 
     def update(self):
         obj_xlrd = xlrd.open_workbook(self.path_in)
@@ -75,14 +75,14 @@ class DataCSVV0(DataBase):
         keys = obj_sheet_pick.row_values(0)
         logging.info(keys)
 
-        # TODO
-        if obj_sheet_pick.cell(0, 1).ctype == 1:
-            self.db['time'] = list()
-            for i in range(1, obj_sheet_pick.nrows):
-                time_tuple = xlrd.xldate_as_tuple(obj_sheet_pick.col_values(0)[i], datemode=0)
-                _time_tuple = (1978, 10, 19, *time_tuple[-3:])
-                time_str = datetime.datetime(*_time_tuple).strftime('%Y/%m/%d %H:%M:%S')
-                self.db['time'].append(time_str)
+        # # TODO
+        # if obj_sheet_pick.cell(0, 1).ctype == 1:
+        #     self.db['time'] = list()
+        #     for i in range(1, obj_sheet_pick.nrows):
+        #         time_tuple = xlrd.xldate_as_tuple(obj_sheet_pick.col_values(0)[i], datemode=0)
+        #         _time_tuple = (1978, 10, 19, *time_tuple[-3:])
+        #         time_str = datetime.datetime(*_time_tuple).strftime('%Y/%m/%d %H:%M:%S')
+        #         self.db['time'].append(time_str)
 
         self.db['time'] = obj_sheet_pick.col_values(0)[1:]
         self.db['voc_raw'] = obj_sheet_pick.col_values(1)[1:]
@@ -123,6 +123,44 @@ class DataCSVV0(DataBase):
             if dir_save is not None:
                 plt.savefig(os.path.join(dir_save, f'{key}'))
             plt.clf()
+
+
+class DataCSVV0(DataBase):
+    def __init__(self, path_in):
+        super().__init__()
+        self.path_in = path_in
+
+    def update(self):
+        data = pd.read_csv(self.path_in, header=None)
+        self.db['time'] = data.values[:, 1]
+        self.db['voc'] = data.values[:, 2]
+        self.db['co'] = data.values[:, 4]
+        self.db['temper'] = data.values[:, 6]
+        self.db['humid'] = data.values[:, 7]
+        self.db['pm010'] = data.values[:, 11]
+        self.db['pm025'] = data.values[:, 12]
+        self.db['pm100'] = data.values[:, 13]
+        self.db['forward'] = data.values[:, 16]
+        self.db['backward'] = data.values[:, 17]
+
+        for key in self.db.keys():
+            self.seq_len = len(self.db[key]) if len(self.db[key]) > self.seq_len else self.seq_len
+
+    def plot(self, pause_time_s=0.01, keys_plot=None):
+        plt.ion()
+        time_idxes = range(self.seq_len)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        for key in keys_plot:
+            if key == 'time':
+                continue
+            plt.plot(np.array(time_idxes), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.yticks(np.arange(0, 4096, 4096 / 10))
+        mng = plt.get_current_fig_manager()
+        mng.resize(*mng.window.maxsize())
+        plt.show()
+        plt.pause(pause_time_s)
+        plt.clf()
 
 
 class DataRT(DataBase):
