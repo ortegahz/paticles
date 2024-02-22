@@ -177,11 +177,33 @@ class DataCSVV0S(DataCSVV0):
             self.seq_len = len(self.db[key]) if len(self.db[key]) > self.seq_len else self.seq_len
 
 
+class DataCSVV0M(DataCSVV0):
+    def __init__(self, path_in):
+        super(DataCSVV0M, self).__init__(path_in)
+
+    def update(self):
+        data = pd.read_csv(self.path_in, header=None)
+        self.db['time'] = data.values[:, 1]
+        self.db['voc'] = data.values[:, 2]
+        self.db['co'] = data.values[:, 4]
+        self.db['temper'] = data.values[:, 6]
+        self.db['humid'] = data.values[:, 7]
+        self.db['pm010'] = data.values[:, 8]
+        self.db['pm025'] = data.values[:, 9]
+        self.db['pm100'] = data.values[:, 10]
+        self.db['forward'] = data.values[:, 16]
+        self.db['backward'] = data.values[:, 17]
+        self.db['voc_gp41'] = data.values[:, -1]
+
+        for key in self.db.keys():
+            self.seq_len = len(self.db[key]) if len(self.db[key]) > self.seq_len else self.seq_len
+
+
 class DataRT(DataBase):
     def __init__(self):
         super().__init__()
         self.max_seq_len = 16384
-        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
+        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward', 'voc_gp41')
         self.keys_info = ('alarm',)
         for key in self.keys:
             self.db[key] = list()

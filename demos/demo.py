@@ -2,15 +2,15 @@ import argparse
 import logging
 
 from cores.particles_detector import ParticlesDetector
-from data.data import DataTextV0, DataCSVV0
+from data.data import DataTextV0, DataCSVV0, DataCSVV0M
 from utils.utils import set_logging, make_dirs
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/国标测试/ABS/MPY22GN2D0012490P_20240202_100910.txt')
+    # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/国标测试/ABS/MPY22GN2D0012490P_20240202_100910.txt')
     # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/0205测试数据/ABS_普通/样机/ABS.txt')
-    # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/反例实验/2/样机.csv')
+    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/反例实验/1/merge.csv')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/parser_save')
     return parser.parse_args()
 
@@ -18,8 +18,8 @@ def parse_args():
 def run(args):
     logging.info(args)
     make_dirs(args.dir_plot_save)
-    db_offline = DataTextV0(args.path_in)
-    # db_offline = DataCSVV0(args.path_in)
+    # db_offline = DataTextV0(args.path_in)
+    db_offline = DataCSVV0M(args.path_in)
     db_offline.update()
     particles_detector = ParticlesDetector()
     for i in range(db_offline.seq_len):
