@@ -203,7 +203,7 @@ class DataRT(DataBase):
     def __init__(self):
         super().__init__()
         self.max_seq_len = 16384
-        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward', 'voc_gp41')
+        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
         self.keys_info = ('alarm',)
         for key in self.keys:
             self.db[key] = list()
