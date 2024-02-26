@@ -221,7 +221,7 @@ class DataRT(DataBase):
             self.db[key] = self.db[key][-self.max_seq_len:]
         self.seq_len = self.seq_len + 1 if self.seq_len < self.max_seq_len else self.max_seq_len
 
-    def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None):
+    def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
         time_idxs = range(self.seq_len)
         keys_plot = self.keys if keys_plot is None else keys_plot
@@ -234,8 +234,9 @@ class DataRT(DataBase):
         plt.yticks(np.arange(0, 4096, 4096 / 10))
         mng = plt.get_current_fig_manager()
         mng.resize(*mng.window.maxsize())
-        plt.show()
-        if dir_save is not None:
-            plt.savefig(os.path.join(dir_save, 'demo_infer_rst'))
-        plt.pause(pause_time_s)
+        if dir_save is not None and save_name is not None:
+            plt.savefig(os.path.join(dir_save, save_name))
+        if show:
+            plt.show()
+            plt.pause(pause_time_s)
         plt.clf()
