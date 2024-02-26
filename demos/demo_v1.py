@@ -4,7 +4,7 @@ import os
 from glob import glob
 
 from cores.particles_detector import ParticlesDetector
-from data.data import DataTextV0
+from data.data import DataTextV0, DataCSVV0
 from utils.utils import set_logging, make_dirs
 
 
@@ -12,18 +12,20 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/sorted')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save')
+    parser.add_argument('--offline_db_type', default='DataTextV0')
+    parser.add_argument('--suffix', default='txt')
     return parser.parse_args()
 
 
 def run(args):
     logging.info(args)
     make_dirs(args.dir_plot_save)
-    paths_in = glob(os.path.join(args.dir_in, '*'))
+    paths_in = glob(os.path.join(args.dir_in, f'*.{args.suffix}'))
     logging.info(paths_in)
     for path_in in paths_in:
+        logging.info(path_in)
         file_name = os.path.basename(path_in).split('.')[0]
-        db_offline = DataTextV0(path_in)
-        # db_offline = DataCSVV0(args.path_in)
+        db_offline = eval(args.offline_db_type)(path_in)
         db_offline.update()
         particles_detector = ParticlesDetector()
         for i in range(db_offline.seq_len):

@@ -9,8 +9,8 @@ from utils.utils import set_logging, make_dirs
 def parse_args():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/国标测试/环氧树脂/MPY22GN2D0012490P_20240202_131652.txt')
-    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/0205测试数据/环氧树脂_国标/样机/环氧树脂.txt')
-    # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/反例实验/1/样机.csv')
+    # parser.add_argument('--path_in', default='/media/manu/data/docs/particles/0205测试数据/环氧树脂_国标/样机/环氧树脂.txt')
+    parser.add_argument('--path_in', default='/media/manu/data/docs/particles/sorted/2_样机.csv')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/parser_save')
     return parser.parse_args()
 
