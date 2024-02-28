@@ -9,11 +9,11 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/反例实验')
-    parser.add_argument('--dir_out', default='/media/manu/data/docs/particles/sorted')
+    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/涿鹿测试')
+    parser.add_argument('--dir_out', default='/media/manu/data/docs/particles/sorted_v0')
     parser.add_argument('--dir_pad', default='')
     parser.add_argument('--key', default='样机')
-    parser.add_argument('--suffix', default='csv')
+    parser.add_argument('--suffix', default='log')
     return parser.parse_args()
 
 

@@ -50,6 +50,35 @@ class DataTextV0(DataBase):
         plt.clf()
 
 
+class DataTextV0A(DataTextV0):
+    def __init__(self, path_in):
+        super(DataTextV0A, self).__init__(path_in)
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            if len(line) < 128:
+                continue
+            logging.info(line)
+            line_lst = line.strip().split(',')
+            if not len(line_lst) == 14:
+                continue
+            line_lst_pick = line_lst[1:]
+            logging.info(line_lst_pick)
+            voc, _, co, _, temper, humid, pm010, pm025, pm100, _, _, _, smoke = line_lst_pick
+            cur_data_lst = [voc, co, temper, humid, pm010, pm025, pm100, smoke]
+            logging.info(cur_data_lst)
+            smoke_lst = smoke.split()
+            logging.info(smoke_lst)
+            forward, backward = smoke_lst[2], smoke_lst[3]
+            cur_data_lst = [voc, co, temper, humid, pm010, pm025, pm100, forward, backward]
+            logging.info(cur_data_lst)
+            for i, key in enumerate(self.keys):
+                self.db[key].append(cur_data_lst[i])  # must be same order
+            self.seq_len += 1
+
+
 class DataXLSV0(DataBase):
     def __init__(self, path_in):
         super().__init__()
