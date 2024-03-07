@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import xlrd
 
+from utils.utils import make_dirs
+
 
 class DataBase:
     def __init__(self):
@@ -35,7 +37,7 @@ class DataTextV0(DataBase):
                 self.db[key].append(cur_data_lst[i])  # must be same order
             self.seq_len += 1
 
-    def plot(self, pause_time_s=0.01, keys_plot=None):
+    def plot_v0(self, pause_time_s=0.01, keys_plot=None):
         plt.ion()
         time_idxs = range(self.seq_len)
         plt.title(self.path_in)
@@ -48,6 +50,19 @@ class DataTextV0(DataBase):
         plt.show()
         plt.pause(pause_time_s)
         plt.clf()
+
+    def plot_v1(self, keys_plot=None, dir_save='/home/manu/tmp/v1_save'):
+        if dir_save is not None:
+            make_dirs(dir_save, reset=True)
+        plt.ion()
+        time_idxs = range(self.seq_len)
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        for key in keys_plot:
+            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+            plt.savefig(os.path.join(dir_save, f'{key}'))
+            plt.clf()
 
 
 class DataTextV0A(DataTextV0):
