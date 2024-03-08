@@ -3,7 +3,7 @@ import logging
 import os
 from glob import glob
 
-from data.data import DataTextV0
+from data.data import DataTextV2
 from utils.utils import set_logging, make_dirs
 
 
@@ -16,10 +16,10 @@ def parse_args():
 
 def run(args):
     logging.info(args)
-    make_dirs(args.dir_out, reset=True)
+    make_dirs(args.dir_out, reset=False)
     paths_in = glob(os.path.join(args.dir_in, '*.txt'))
     for path_in in paths_in:
-        db_obj = DataTextV0(path_in)
+        db_obj = DataTextV2(path_in)
         db_obj.update()
         file_name = os.path.basename(path_in)
         path_out = os.path.join(args.dir_out, file_name)

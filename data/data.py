@@ -21,7 +21,51 @@ class DataBase:
                 f.write(f'{data}\n')
 
 
+class DataTextV2(DataBase):
+    """
+    for normalized data
+    """
+
+    def __init__(self, path_in):
+        super().__init__()
+        self.path_in = path_in
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            if '[PARSER]' not in line:
+                continue
+            vals, keys = line[9:].strip().split('#')
+            vals_lst = vals.split(',')
+            keys_lst = keys.split(',')
+            logging.info((vals, keys))
+            if len(self.db.keys()) < 1:
+                for key in keys_lst:
+                    self.db[key[1:]] = list()
+            logging.info(self.db.keys())
+            assert len(self.db.keys()) == len(vals_lst)
+            for key, val in zip(self.db.keys(), vals_lst):
+                self.db[key].append(float(val))
+            self.seq_len += 1
+
+
+    def modify(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        with open('/home/manu/tmp/modify.txt', 'w') as f:
+            for line in lines:
+                if '[PARSER]' in line:
+                    line = line.replace('co', 'co,')
+                    line = line.replace('rvoc', 'voc')
+                f.write(line)
+
+
 class DataTextV1(DataBase):
+    """
+    for normalized data
+    """
+
     def __init__(self, path_in):
         super().__init__()
         self.path_in = path_in
@@ -271,19 +315,18 @@ class DataRT(DataBase):
     def __init__(self):
         super().__init__()
         self.max_seq_len = 16384
-        self.keys = ('voc', 'co', 'temper', 'humid', 'pm010', 'pm025', 'pm100', 'forward', 'backward')
         self.keys_info = ('alarm',)
-        for key in self.keys:
-            self.db[key] = list()
         for key in self.keys_info:
             self.db[key] = list()
         self.seq_len = 0
 
     def update(self, **cur_data_dict):
+        if len(self.db.keys()) == len(self.keys_info):
+            for key in cur_data_dict.keys():
+                self.db[key] = list()
         for key in cur_data_dict.keys():
-            if key in self.keys:
-                self.db[key].append(cur_data_dict[key])
-                self.db[key] = self.db[key][-self.max_seq_len:]
+            self.db[key].append(cur_data_dict[key])
+            self.db[key] = self.db[key][-self.max_seq_len:]
         for key in self.keys_info:
             self.db[key].append(0.0)
             self.db[key] = self.db[key][-self.max_seq_len:]
@@ -292,7 +335,7 @@ class DataRT(DataBase):
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
         time_idxs = range(self.seq_len)
-        keys_plot = self.keys if keys_plot is None else keys_plot
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
         for key in keys_plot:
             plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
             plt.legend()
