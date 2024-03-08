@@ -14,6 +14,12 @@ class DataBase:
         self.db = dict()
         self.seq_len = 0
 
+    def save(self, path_out='/home/manu/tmp/db.txt', key='forward'):
+        data_save = self.db[key]
+        with open(path_out, 'w') as f:
+            for data in data_save:
+                f.write(f'{data}\n')
+
 
 class DataTextV0(DataBase):
     def __init__(self, path_in):

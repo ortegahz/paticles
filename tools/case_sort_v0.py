@@ -19,7 +19,7 @@ def parse_args():
 
 def run(args):
     logging.info(args)
-    make_dirs(args.dir_out, reset=False)
+    make_dirs(args.dir_out, reset=True)
     sub_dirs = glob(os.path.join(args.dir_in, '*'))
     for sub_dir in sub_dirs:
         logging.info(sub_dir)
