@@ -21,6 +21,24 @@ class DataBase:
                 f.write(f'{data}\n')
 
 
+class DataTextV1(DataBase):
+    def __init__(self, path_in):
+        super().__init__()
+        self.path_in = path_in
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        keys = lines[0].strip().split(',')[:-1]
+        for key in keys:
+            self.db[key] = list()
+        for line in lines[1:]:
+            line_lst = line.strip().split(',')[:-1]
+            for i, key in enumerate(keys):
+                self.db[key].append(float(line_lst[i]))
+            self.seq_len += 1
+
+
 class DataTextV0(DataBase):
     def __init__(self, path_in):
         super().__init__()

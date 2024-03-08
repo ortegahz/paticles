@@ -9,7 +9,7 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/热解粒子实验数据/目前支持的五种材料')
+    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/热解粒子实验数据/目前支持的五种材料_v0')
     parser.add_argument('--dir_out', default='/home/manu/tmp/particles_sorted_v3')
     parser.add_argument('--dir_pad', default='样机')
     parser.add_argument('--key', default='')
