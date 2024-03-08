@@ -1,18 +1,16 @@
 import argparse
-import logging
-import os
 from glob import glob
 
 from cores.particles_detector import ParticlesDetector
-from data.data import DataTextV0, DataCSVV0, DataTextV0A
+from data.data import *
 from utils.utils import set_logging, make_dirs
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v3')
+    parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v3_normalized')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v3')
-    parser.add_argument('--offline_db_type', default='DataTextV0')
+    parser.add_argument('--offline_db_type', default='DataTextV1')
     parser.add_argument('--suffix', default='txt')
     return parser.parse_args()
 
