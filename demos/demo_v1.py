@@ -10,10 +10,10 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/sorted_v0')
-    parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save')
-    parser.add_argument('--offline_db_type', default='DataTextV0A')
-    parser.add_argument('--suffix', default='log')
+    parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v3')
+    parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v3')
+    parser.add_argument('--offline_db_type', default='DataTextV0')
+    parser.add_argument('--suffix', default='txt')
     return parser.parse_args()
 
 
