@@ -9,15 +9,16 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v3')
-    parser.add_argument('--dir_out', default='/home/manu/tmp/particles_sorted_v3_normalized')
+    parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v4')
+    parser.add_argument('--dir_out', default='/home/manu/tmp/particles_sorted_v4_normalized')
+    parser.add_argument('--suffix', default='log')
     return parser.parse_args()
 
 
 def run(args):
     logging.info(args)
-    make_dirs(args.dir_out, reset=False)
-    paths_in = glob(os.path.join(args.dir_in, '*.txt'))
+    make_dirs(args.dir_out, reset=True)
+    paths_in = glob(os.path.join(args.dir_in, f'*.{args.suffix}'))
     for path_in in paths_in:
         db_obj = DataTextV2(path_in)
         db_obj.update()
