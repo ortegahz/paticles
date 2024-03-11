@@ -268,7 +268,8 @@ class DataCSVV0(DataBase):
                 continue
             plt.plot(np.array(time_idxes), np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.yticks(np.arange(0, 4096, 4096 / 10))
+        y_lim = 128
+        plt.yticks(np.arange(0, y_lim, y_lim / 10))
         mng = plt.get_current_fig_manager()
         mng.resize(*mng.window.maxsize())
         plt.show()
