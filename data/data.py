@@ -31,7 +31,7 @@ class DataTextV2(DataBase):
         self.path_in = path_in
 
     def update(self):
-        with open(self.path_in, 'r') as f:
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
             lines = f.readlines()
         for line in lines:
             if '[PARSER]' not in line:
