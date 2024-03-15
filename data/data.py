@@ -21,11 +21,46 @@ class DataBase:
                 f.write(f'{data}\n')
 
 
-class DataTextV2(DataBase):
-    """
-    for normalized data
-    """
+class DataTextV3(DataBase):
 
+    def __init__(self, path_in):
+        super().__init__()
+        self.path_in = path_in
+        self.keys = \
+            ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+             'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        for key in self.keys:
+            self.db[key] = list()
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for line in lines[1:]:
+            line_lst = line.strip().split(',')
+            for i, key in enumerate(self.keys):
+                self.db[key].append(float(line_lst[i]))
+            self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        plt.ion()
+        time_idxs = range(self.seq_len)
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        for key in keys_plot:
+            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.ylim(0, 4096)
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
+        plt.clf()
+
+
+class DataTextV2(DataBase):
     def __init__(self, path_in):
         super().__init__()
         self.path_in = path_in
@@ -48,7 +83,6 @@ class DataTextV2(DataBase):
             for key, val in zip(self.db.keys(), vals_lst):
                 self.db[key].append(float(val))
             self.seq_len += 1
-
 
     def modify(self):
         with open(self.path_in, 'r') as f:
