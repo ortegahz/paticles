@@ -22,6 +22,14 @@ class DataBase:
 
 
 class DataTextV3(DataBase):
+    """
+    format:
+    222,30,7,0,622,13,213,225,1,9,4,2369,178
+    219,30,6,0,623,13,205,217,1,9,4,2370,179
+    219,30,6,0,623,13,205,217,1,9,4,2370,179
+    215,30,7,0,621,13,198,209,1,10,4,2368,178
+    ...
+    """
 
     def __init__(self, path_in):
         super().__init__()
@@ -58,6 +66,45 @@ class DataTextV3(DataBase):
         if path_save is not None:
             plt.savefig(path_save)
         plt.clf()
+
+
+class DataTextV4(DataTextV3):
+    """
+    format:
+    [2024-03-14 15:28:25.395]# RECV HEX>
+    05 03 00 01 00 02 4F 94 05 03 00 04 00 80 00 40 EC 42 05 03 00 05 00 0B ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        del self.db['co_raw']
+        del self.db['h2_raw']
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            head = '03 00 16'
+            if head not in line:
+                continue
+            pos = line.find(head)
+            line_pick = line[pos:]
+            logging.info(line_pick)
+            line_pick_lst = line_pick.split(' ')
+            logging.info(line_pick_lst)
+            line_pick_lst = line_pick_lst[3:3 + 22]
+            logging.info(line_pick_lst)
+            assert len(line_pick_lst) == 22
+            assert len(self.db.keys()) == 11
+            for i, key in enumerate(self.db.keys()):
+                hex_str = ''.join(line_pick_lst[i * 2:i * 2 + 2])
+                logging.info(hex_str)
+                val = int(hex_str, 16)
+                logging.info(val)
+                self.db[key].append(val)
+            self.seq_len += 1
 
 
 class DataTextV2(DataBase):
