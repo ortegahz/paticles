@@ -105,7 +105,7 @@ class DataTextV0(DataBase):
                 self.db[key].append(cur_data_lst[i])  # must be same order
             self.seq_len += 1
 
-    def plot_v0(self, pause_time_s=0.01, keys_plot=None):
+    def plot_v0(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
         plt.ion()
         time_idxs = range(self.seq_len)
         plt.title(self.path_in)
@@ -113,10 +113,13 @@ class DataTextV0(DataBase):
         for key in keys_plot:
             plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        mng = plt.get_current_fig_manager()
-        mng.resize(*mng.window.maxsize())
-        plt.show()
-        plt.pause(pause_time_s)
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
         plt.clf()
 
     def plot_v1(self, keys_plot=None, dir_save='/home/manu/tmp/v1_save'):
