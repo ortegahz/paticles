@@ -68,6 +68,31 @@ class DataTextV3(DataBase):
         plt.clf()
 
 
+class DataTextV3P(DataTextV3):
+    """
+    format:
+    0x0：2000,82,0,0,633,8,2000,2000,0,37,11,2432,91
+    0x0：2000,82,0,0,633,8,2000,2000,0,37,11,2432,91
+    0x0：2000,82,0,0,633,8,2000,2000,0,37,11,2432,91
+    0x0：2000,82,0,0,635,8,2000,2000,1,37,12,2432,91
+    0x0：2000,82,0,0,635,8,2000,2000,1,37,12,2432,91
+    0x0：2000,82,0,0,635,8,2000,2000,1,37,12,2432,91
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+
+    def update(self):
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
+            lines = f.readlines()
+        for line in lines:
+            _, line = line.strip().split('£º')
+            line_lst = line.strip().split(',')
+            for i, key in enumerate(self.keys):
+                self.db[key].append(float(line_lst[i]))
+            self.seq_len += 1
+
+
 class DataTextV4(DataTextV3):
     """
     format:
@@ -145,6 +170,13 @@ class DataTextV2(DataBase):
 class DataTextV1(DataBase):
     """
     for normalized data
+    format:
+    voc,co,temper,humid,pm010,pm025,pm100,forward,backward,
+     456,1012,27.95,20.86,  31,  49,  60,27,21,
+     457, 998,27.94,20.90,  31,  49,  60,26,21,
+     454,1008,27.95,20.88,  31,  49,  60,26,21,
+     447,1004,27.96,20.88,  31,  49,  60,26,21,
+     450,1007,27.95,20.97,  31,  49,  60,27,21,
     """
 
     def __init__(self, path_in):

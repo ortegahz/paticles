@@ -4,12 +4,13 @@ from data.data import *
 
 
 class ParserBase:
-    def __init__(self, db_type, suffix, dir_plot_save):
+    def __init__(self, db_type, suffix, dir_plot_save, keys_plot=None):
         self.db_type = db_type
         self.suffix = suffix
         self.dir_plot_save = dir_plot_save
+        self.keys_plot = keys_plot
 
-        make_dirs(self.dir_plot_save, reset=True)
+        make_dirs(self.dir_plot_save, reset=False)
 
     def parse(self):
         raise NotImplementedError
@@ -38,8 +39,8 @@ class ParserV1(ParserBase):
     format: dir_in/file_name.suffix
     """
 
-    def __init__(self, db_type, suffix, dir_plot_save, addr_in):
-        super().__init__(db_type, suffix, dir_plot_save)
+    def __init__(self, db_type, suffix, dir_plot_save, addr_in, keys_plot=None):
+        super().__init__(db_type, suffix, dir_plot_save, keys_plot)
         self.dir_in = addr_in
 
     def parse(self):
@@ -50,7 +51,7 @@ class ParserV1(ParserBase):
             db_obj.update()
             path_save = os.path.join(self.dir_plot_save, os.path.basename(path_in))
             path_save = path_save.replace(self.suffix, 'png')
-            db_obj.plot(pause_time_s=0.001, path_save=path_save)
+            db_obj.plot(pause_time_s=0.001, path_save=path_save, keys_plot=self.keys_plot)
 
 
 class ParserV2(ParserBase):
