@@ -21,8 +21,8 @@ class ParserV0(ParserBase):
     format: file_name.suffix
     """
 
-    def __init__(self, db_type, suffix, dir_plot_save, addr_in):
-        super().__init__(db_type, suffix, dir_plot_save)
+    def __init__(self, db_type, suffix, dir_plot_save, addr_in, keys_plot=None):
+        super().__init__(db_type, suffix, dir_plot_save, keys_plot)
         self.path_in = addr_in
 
     def parse(self):

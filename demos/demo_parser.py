@@ -6,10 +6,10 @@ from utils.utils import set_logging
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--addr', default='/home/manu/tmp/金属壳方位性试验(1)')
-    parser.add_argument('--db_type', default='DataTextV3P')
+    parser.add_argument('--addr', default='/media/manu/data/docs/particles/热解粒子实验数据/目前支持的五种材料_v2')
+    parser.add_argument('--db_type', default='DataDatV0')
     parser.add_argument('--keys_plot', default=None)
-    parser.add_argument('--suffix', default='txt')
+    parser.add_argument('--suffix', default='DAT')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_parser_save')
     return parser.parse_args()
 

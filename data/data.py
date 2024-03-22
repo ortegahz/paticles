@@ -132,6 +132,52 @@ class DataTextV4(DataTextV3):
             self.seq_len += 1
 
 
+class DataDatV0(DataTextV3):
+    """
+    format:
+    [2024-03-14 15:28:25.395]# RECV HEX>
+    05 03 00 01 00 02 4F 94 05 03 00 04 00 80 00 40 EC 42 05 03 00 05 00 0B ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        del self.db['co_raw']
+        del self.db['h2_raw']
+        self.addr = '03'
+
+    def update(self):
+        hex_lst = list()
+        with open(self.path_in, 'rb') as f:
+            while True:
+                byte = f.read(1)
+                if not byte:
+                    break
+                hex_byte = format(ord(byte), '02x')
+                hex_lst.append(hex_byte)
+        logging.info(hex_lst)
+        head = f'{self.addr} 03 00 16'
+        for i in range(0, len(hex_lst) - 4):
+            head_hat = hex_lst[i] + ' ' + hex_lst[i + 1] + ' ' + hex_lst[i + 2] + ' ' + hex_lst[i + 3]
+            if not head_hat == head:
+                continue
+            data_valid = hex_lst[i + 1:i + 4 + 22]
+            if len(data_valid) != 3 + 22:
+                continue
+            logging.info(data_valid)
+            data_valid_pick = data_valid[3:]
+            assert len(data_valid_pick) == 22
+            assert len(self.db.keys()) == 11
+            for i, key in enumerate(self.db.keys()):
+                hex_str = ''.join(data_valid_pick[i * 2:i * 2 + 2])
+                logging.info(hex_str)
+                val = int(hex_str, 16)
+                logging.info(val)
+                self.db[key].append(val)
+            self.seq_len += 1
+
+
 class DataTextV2(DataBase):
     def __init__(self, path_in):
         super().__init__()
