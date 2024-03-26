@@ -1,6 +1,8 @@
 import logging
 import os
+from datetime import datetime
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -132,6 +134,84 @@ class DataTextV4(DataTextV3):
             self.seq_len += 1
 
 
+class DataTextV5(DataTextV3):
+    """
+    format:
+    [2024-03-26 18:48:38.046]# RECV HEX>
+    03 03 00 01 00 02 29 94 03 03 00 04 00 80 00 40 C6 C2
+
+    [2024-03-26 18:48:38.156]# RECV HEX>
+    03 03 00 05 00 0B EE 15 03 03 00 16 00 30 00 50 00 00 00 00 01 15 00 19 00 44 00 48 00 2E 00 0D 00 08 98 EF
+    """
+
+    def __init__(self, path_in, addr='03'):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        del self.db['co_raw']
+        del self.db['h2_raw']
+        self.timestamps = list()
+        self.addr = addr
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        data_hex_str = ''
+        time_str = ''
+        for line in lines:
+            if 'RECV HEX' in line:
+                time_str, _ = line.strip().split(']')
+                _, time_str = time_str.split('[')
+                # logging.info(time_str)
+            elif len(line) > 1:  # skip \n
+                data_hex_str += line.strip()
+                logging.info(data_hex_str)
+            head = f'{self.addr} 03 00 16'
+            if head not in data_hex_str:
+                continue
+            pos = data_hex_str.find(head)
+            line_pick = data_hex_str[pos:]
+            data_hex_str = data_hex_str[pos + len(head) + 1:]
+            logging.info(line_pick)
+            line_pick_lst = line_pick.split(' ')
+            logging.info(line_pick_lst)
+            line_pick_lst = line_pick_lst[4:4 + 22]
+            logging.info(line_pick_lst)
+            assert len(line_pick_lst) == 22
+            assert len(self.db.keys()) == 11
+            for i, key in enumerate(self.db.keys()):
+                hex_str = ''.join(line_pick_lst[i * 2:i * 2 + 2])
+                logging.info(hex_str)
+                val = int(hex_str, 16)
+                logging.info(val)
+                self.db[key].append(val)
+            self.timestamps.append(time_str)
+            self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        plt.ion()
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.timestamps]
+        for key in keys_plot:
+            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.ylim(0, 4096)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+        plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+        plt.gcf().autofmt_xdate()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
+        plt.clf()
+
+
 class DataDatV0(DataTextV3):
     """
     format:
@@ -145,7 +225,7 @@ class DataDatV0(DataTextV3):
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
         del self.db['co_raw']
         del self.db['h2_raw']
-        self.addr = '03'
+        self.addr = '04'
 
     def update(self):
         hex_lst = list()
