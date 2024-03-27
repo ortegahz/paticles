@@ -10,8 +10,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_in', default='/home/manu/tmp/particles_sorted_v1')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v1')
-    parser.add_argument('--offline_db_type', default='DataTextV3')
-    parser.add_argument('--suffix', default='txt')
+    parser.add_argument('--offline_db_type', default='DataTextV5')
+    parser.add_argument('--suffix', default='log')
     return parser.parse_args()
 
 

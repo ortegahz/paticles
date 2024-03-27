@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import xlrd
 
+from utils.macros import ALARM_NAIVE_THRESHOLD_PM025, ALARM_INDICATE_VAL
 from utils.utils import make_dirs
 
 
@@ -150,7 +151,7 @@ class DataTextV5(DataTextV3):
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
         del self.db['co_raw']
         del self.db['h2_raw']
-        self.timestamps = list()
+        self.db['timestamps'] = list()
         self.addr = addr
 
     def update(self):
@@ -164,36 +165,42 @@ class DataTextV5(DataTextV3):
                 _, time_str = time_str.split('[')
                 # logging.info(time_str)
             elif len(line) > 1:  # skip \n
-                data_hex_str += line.strip()
+                data_hex_str += ' ' + line.strip()
                 logging.info(data_hex_str)
             head = f'{self.addr} 03 00 16'
             if head not in data_hex_str:
                 continue
             pos = data_hex_str.find(head)
             line_pick = data_hex_str[pos:]
-            data_hex_str = data_hex_str[pos + len(head) + 1:]
             logging.info(line_pick)
             line_pick_lst = line_pick.split(' ')
             logging.info(line_pick_lst)
             line_pick_lst = line_pick_lst[4:4 + 22]
             logging.info(line_pick_lst)
-            assert len(line_pick_lst) == 22
-            assert len(self.db.keys()) == 11
+            # assert len(line_pick_lst) == 22
+            if len(line_pick_lst) < 22:
+                continue
+            assert len(self.db.keys()) == 11 + 1
             for i, key in enumerate(self.db.keys()):
+                if key == 'timestamps':
+                    continue
                 hex_str = ''.join(line_pick_lst[i * 2:i * 2 + 2])
                 logging.info(hex_str)
                 val = int(hex_str, 16)
                 logging.info(val)
                 self.db[key].append(val)
-            self.timestamps.append(time_str)
+            self.db['timestamps'].append(time_str)
             self.seq_len += 1
+            data_hex_str = data_hex_str[pos + len(head) + 1:]
 
     def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
         plt.ion()
         plt.title(self.path_in)
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
-        time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.timestamps]
+        time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.db['timestamps']]
         for key in keys_plot:
+            if key == 'timestamps':
+                continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
         plt.ylim(0, 4096)
@@ -561,6 +568,7 @@ class DataRT(DataBase):
         self.keys_info = ('alarm',)
         for key in self.keys_info:
             self.db[key] = list()
+        self.timestamps = list()
         self.seq_len = 0
 
     def update(self, **cur_data_dict):
@@ -577,15 +585,33 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        time_idxs = range(self.seq_len)
+        if len(self.db['timestamps']) > 0:
+            time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.db['timestamps']]
+        else:
+            time_stamps = np.array(range(self.seq_len))
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
         for key in keys_plot:
-            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            if key == 'timestamps':
+                continue
+            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
         for key in self.keys_info:
-            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.yticks(np.arange(0, 4096, 4096 / 10))
+        # plt.yticks(np.arange(0, 4096, 4096 / 10))
+        plt.ylim(0, 4096)
+        if len(self.db['timestamps']) > 0:
+            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+            plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+            plt.gcf().autofmt_xdate()
+            indices = np.where(np.array(self.db['alarm']) == ALARM_INDICATE_VAL)
+            if len(indices[0]) > 0:
+                plt.gca().annotate(time_stamps[indices[0][0]],
+                                   xy=(time_stamps[indices[0][0]], ALARM_NAIVE_THRESHOLD_PM025),
+                                   xytext=(-50, 50), textcoords='offset points',
+                                   arrowprops=dict(color='red', arrowstyle='->'))
+            plt.xticks(rotation=45)
+            plt.tight_layout()
         mng = plt.get_current_fig_manager()
         mng.resize(*mng.window.maxsize())
         if dir_save is not None and save_name is not None:

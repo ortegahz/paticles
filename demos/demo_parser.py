@@ -6,7 +6,7 @@ from utils.utils import set_logging
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--addr', default='/media/manu/data/docs/particles/热解粒子实验数据/沈消所送检_v1/02_03.log')
+    parser.add_argument('--addr', default='/media/manu/data/docs/particles/热解粒子实验数据/沈消所送检_v1/PVC_03_04.log')
     parser.add_argument('--db_type', default='DataTextV5')
     parser.add_argument('--keys_plot', default=None)
     parser.add_argument('--suffix', default='log')
