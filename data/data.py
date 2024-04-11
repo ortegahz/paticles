@@ -126,6 +126,63 @@ class DataTextV3E(DataTextV3):
             self.seq_len += 1
 
 
+class DataTextV3G(DataTextV3):
+    """
+    format:
+    2024-04-11 17:40:27,33,78,0,0,728,34,45,47,1,9,3,2414,208
+    2024-04-11 17:40:28,33,78,0,0,728,34,45,47,1,9,3,2414,208
+    2024-04-11 17:40:29,33,78,0,0,730,35,45,47,1,9,3,2414,208
+    2024-04-11 17:40:30,34,78,0,0,731,36,45,47,1,9,4,2414,209
+    2024-04-11 17:40:31,33,78,0,0,730,37,46,48,1,8,4,2414,209
+    2024-04-11 17:40:33,31,78,0,0,731,37,43,45,1,8,3,2414,209
+    2024-04-11 17:40:34,31,78,0,0,731,37,43,45,1,8,3,2414,209
+    2024-04-11 17:40:35,31,78,0,0,731,37,45,47,1,9,3,2414,209
+    2024-04-11 17:40:36,30,78,0,0,731,37,43,45,1,9,3,2415,209
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        self.timestamps = list()
+
+    def update(self):
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
+            lines = f.readlines()
+        for line in lines:
+            line_lst = line.strip().split(',')
+            line_lst_valid = line_lst[1:]
+            for i, key in enumerate(self.db.keys()):
+                self.db[key].append(float(line_lst_valid[i]))
+            self.timestamps.append(line_lst[0])
+            self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        plt.ion()
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S') for ts in self.timestamps]
+        for key in keys_plot:
+            if key == 'timestamps':
+                continue
+            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.ylim(0, 4096)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+        plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+        plt.gcf().autofmt_xdate()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
+        plt.clf()
+
+
 class DataTextV4(DataTextV3):
     """
     format:
