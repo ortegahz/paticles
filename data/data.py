@@ -96,6 +96,36 @@ class DataTextV3P(DataTextV3):
             self.seq_len += 1
 
 
+class DataTextV3E(DataTextV3):
+    """
+    format:
+    2024-04-11_14-00-14103,73,12,0,2936,48,136,147,1,9,3,2358,193
+    2024-04-11_14-00-15103,73,9,0,2913,48,136,147,1,9,3,2364,194
+    2024-04-11_14-00-16103,73,9,0,2913,48,140,152,1,9,3,2364,194
+    2024-04-11_14-00-17104,73,10,0,2893,48,139,151,1,9,4,2363,194
+    2024-04-11_14-00-18103,73,9,0,2876,48,138,150,1,9,3,2365,195
+    2024-04-11_14-00-19103,73,9,0,2850,48,140,152,1,9,3,2366,195
+    2024-04-11_14-00-20109,73,8,0,2832,48,147,160,1,9,3,2367,195
+    2024-04-11_14-00-21111,73,7,0,2807,48,148,161,1,9,3,2368,195
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        del self.db['pm1.0']
+
+    def update(self):
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
+            lines = f.readlines()
+        for line in lines:
+            line_lst = line.strip().split(',')
+            line_lst_valid = line_lst[1:]
+            for i, key in enumerate(self.db.keys()):
+                self.db[key].append(float(line_lst_valid[i]))
+            self.seq_len += 1
+
+
 class DataTextV4(DataTextV3):
     """
     format:
@@ -203,7 +233,7 @@ class DataTextV5(DataTextV3):
                 continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.ylim(0, 4096)
+        plt.ylim(0, 256)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
@@ -585,7 +615,7 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        if len(self.db['timestamps']) > 0:
+        if 'timestamps' in self.db.keys() and len(self.db['timestamps']) > 0:
             time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.db['timestamps']]
         else:
             time_stamps = np.array(range(self.seq_len))
@@ -595,12 +625,12 @@ class DataRT(DataBase):
                 continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        for key in self.keys_info:
-            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
-            plt.legend()
+        # for key in self.keys_info:
+        #     plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+        #     plt.legend()
         # plt.yticks(np.arange(0, 4096, 4096 / 10))
         plt.ylim(0, 4096)
-        if len(self.db['timestamps']) > 0:
+        if 'timestamps' in self.db.keys() and len(self.db['timestamps']) > 0:
             plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
             plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
             plt.gcf().autofmt_xdate()
