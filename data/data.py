@@ -150,6 +150,8 @@ class DataTextV3G(DataTextV3):
         with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
             lines = f.readlines()
         for line in lines:
+            if len(line) < 8:
+                continue
             line_lst = line.strip().split(',')
             line_lst_valid = line_lst[1:]
             for i, key in enumerate(self.db.keys()):
@@ -167,7 +169,7 @@ class DataTextV3G(DataTextV3):
                 continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.ylim(0, 4096)
+        plt.ylim(0, 256)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
@@ -672,8 +674,8 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        if 'timestamps' in self.db.keys() and len(self.db['timestamps']) > 0:
-            time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S.%f') for ts in self.db['timestamps']]
+        if len(self.timestamps) > 0:
+            time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S') for ts in self.timestamps]
         else:
             time_stamps = np.array(range(self.seq_len))
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
@@ -687,7 +689,7 @@ class DataRT(DataBase):
         #     plt.legend()
         # plt.yticks(np.arange(0, 4096, 4096 / 10))
         plt.ylim(0, 4096)
-        if 'timestamps' in self.db.keys() and len(self.db['timestamps']) > 0:
+        if len(self.timestamps) > 0:
             plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
             plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
             plt.gcf().autofmt_xdate()
