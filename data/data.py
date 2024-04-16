@@ -241,6 +241,7 @@ class DataTextV5(DataTextV3):
         del self.db['co_raw']
         del self.db['h2_raw']
         self.db['timestamps'] = list()
+        self.timestamps = list()
         self.addr = addr
 
     def update(self):
@@ -279,6 +280,7 @@ class DataTextV5(DataTextV3):
                 logging.info(val)
                 self.db[key].append(val)
             self.db['timestamps'].append(time_str)
+            self.timestamps.append(time_str)
             self.seq_len += 1
             data_hex_str = data_hex_str[pos + len(head) + 1:]
 
@@ -674,8 +676,10 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
+        # timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
+        timestamps_format = '%Y-%m-%d %H:%M:%S'
         if len(self.timestamps) > 0:
-            time_stamps = [datetime.strptime(ts, '%Y-%m-%d %H:%M:%S') for ts in self.timestamps]
+            time_stamps = [datetime.strptime(ts, timestamps_format) for ts in self.timestamps]
         else:
             time_stamps = np.array(range(self.seq_len))
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
@@ -690,7 +694,7 @@ class DataRT(DataBase):
         # plt.yticks(np.arange(0, 4096, 4096 / 10))
         plt.ylim(0, 4096)
         if len(self.timestamps) > 0:
-            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(timestamps_format))
             plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
             plt.gcf().autofmt_xdate()
             indices = np.where(np.array(self.db['alarm']) == ALARM_INDICATE_VAL)
