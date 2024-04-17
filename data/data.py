@@ -284,7 +284,7 @@ class DataTextV5(DataTextV3):
             self.seq_len += 1
             data_hex_str = data_hex_str[pos + len(head) + 1:]
 
-    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+    def plot(self, pause_time_s=0.01, keys_plot=('pm2.5', 'humid', 'temper',), show=False, path_save=None):
         plt.ion()
         plt.title(self.path_in)
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
@@ -357,15 +357,58 @@ class DataDatV0(DataTextV3):
 
 
 class DataTextV2(DataBase):
+    """
+    format:
+    [2024-04-16 19:29:05.194]# RECV ASCII>
+
+    temperature: 29.83 humidity:16.28
+
+     temperature, temperature_l, temperature_u --> 29.827955, 20.000000, 30.000000
+
+     ---> H2 raw: 341.28,  ppm = 104.33
+
+     --->T :29.83, CO raw: 2396.63, CO CF: 1.08,  ppm = -7.12   ppm CF: -7.66
+
+    sraw H2: 341.28   H2: 104.33 ppm
+
+    sraw CO: 2396.63   CO: 0.00 ppm
+
+    sraw VOC: 501.75
+
+    cFW2511FetchData : 254   0   9   3   1 250   8   2  64  64 202   1   8   0   0   0   1 237   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+
+    smoke forward: 1,9,3
+
+    cS2000FetchData : 0xa5 0xf2 0x04 0x01 0x00 0x01 0x00 0x01 0x00 0x00 0xf9
+
+    pm1.0 = 1 ug/m3 pm2.5 = 1 ug/m3 pm10 = 1 ug/m3
+
+    1, 1, 1, 1, 0, 0, 341, 2396, 104, 0, 29, 16, 0, 0
+
+     [PARSER] 1, 1, 1, 3, 501, 104, 0, 29, 16 # pm010, pm025, pm100, backward, voc, h2, co, temper, humid
+    """
     def __init__(self, path_in):
         super().__init__()
         self.path_in = path_in
+        self.timestamp_cur = ''
+        self.h2_raw_cur = -1
+        self.timestamps = list()
+        self.h2_raw = list()
 
     def update(self):
         with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
             lines = f.readlines()
         for line in lines:
-            if '[PARSER]' not in line:
+            if '[PARSER]' not in line and '# RECV ASCII' not in line and 'sraw H2:' not in line:
+                continue
+            if '# RECV ASCII' in line:
+                time_str, _ = line.strip().split(']')
+                self.timestamp_cur = time_str[1:]
+                continue
+            if 'sraw H2:' in line:
+                _, h2_str, _ = line.strip().split('H2:')
+                h2_val = float(h2_str.strip())
+                self.h2_raw_cur = h2_val
                 continue
             vals, keys = line[9:].strip().split('#')
             vals_lst = vals.split(',')
@@ -378,7 +421,36 @@ class DataTextV2(DataBase):
             assert len(self.db.keys()) == len(vals_lst)
             for key, val in zip(self.db.keys(), vals_lst):
                 self.db[key].append(float(val))
+            self.h2_raw.append(self.h2_raw_cur)
+            self.timestamps.append(self.timestamp_cur)
             self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        plt.ion()
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        time_format = '%Y-%m-%d %H:%M:%S.%f'
+        time_stamps = [datetime.strptime(ts, time_format) for ts in self.timestamps]
+        for key in keys_plot:
+            if key == 'timestamps':
+                continue
+            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+        plt.plot(time_stamps, np.array(self.h2_raw).astype(float), label='h2_raw')
+        plt.legend()
+        plt.ylim(0, 2048)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(time_format))
+        plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+        plt.gcf().autofmt_xdate()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
+        plt.clf()
 
     def modify(self):
         with open(self.path_in, 'r') as f:
@@ -655,7 +727,7 @@ class DataCSVV0M(DataCSVV0):
 class DataRT(DataBase):
     def __init__(self):
         super().__init__()
-        self.max_seq_len = 16384
+        self.max_seq_len = 1024 * 1024
         self.keys_info = ('alarm',)
         for key in self.keys_info:
             self.db[key] = list()
@@ -668,16 +740,17 @@ class DataRT(DataBase):
                 self.db[key] = list()
         for key in cur_data_dict.keys():
             self.db[key].append(cur_data_dict[key])
-            self.db[key] = self.db[key][-self.max_seq_len:]
+            # self.db[key] = self.db[key][-self.max_seq_len:]
         for key in self.keys_info:
             self.db[key].append(0.0)
-            self.db[key] = self.db[key][-self.max_seq_len:]
-        self.seq_len = self.seq_len + 1 if self.seq_len < self.max_seq_len else self.max_seq_len
+            # self.db[key] = self.db[key][-self.max_seq_len:]
+        # self.seq_len = self.seq_len + 1 if self.seq_len < self.max_seq_len else self.max_seq_len
+        self.seq_len = self.seq_len + 1
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        # timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
-        timestamps_format = '%Y-%m-%d %H:%M:%S'
+        timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
+        # timestamps_format = '%Y-%m-%d %H:%M:%S'
         if len(self.timestamps) > 0:
             time_stamps = [datetime.strptime(ts, timestamps_format) for ts in self.timestamps]
         else:

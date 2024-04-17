@@ -1,5 +1,4 @@
 import argparse
-import logging
 from glob import glob
 
 from cores.particles_detector import ParticlesDetector
@@ -9,10 +8,10 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/热解粒子实验数据/公司_v0/环氧树脂10g')
+    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/热解粒子实验数据/国标送检')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v1')
-    parser.add_argument('--offline_db_type', default='DataTextV3G')
-    parser.add_argument('--suffix', default='txt')
+    parser.add_argument('--offline_db_type', default='DataTextV5')
+    parser.add_argument('--suffix', default='log')
     return parser.parse_args()
 
 

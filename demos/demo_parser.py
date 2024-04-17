@@ -6,17 +6,17 @@ from utils.utils import set_logging
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--addr', default='/media/manu/data/docs/particles/热解粒子实验数据/公司_v0')
-    parser.add_argument('--db_type', default='DataTextV3G')
+    parser.add_argument('--addr', default='/media/manu/data/docs/particles/热解粒子实验数据/国标送检/湿热.log')
+    parser.add_argument('--db_type', default='DataTextV5')
     parser.add_argument('--keys_plot', default=None)
-    parser.add_argument('--suffix', default='txt')
+    parser.add_argument('--suffix', default='log')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_parser_save')
     return parser.parse_args()
 
 
 def run(args):
     logging.info(args)
-    parser = ParserV1(db_type=args.db_type, suffix=args.suffix, keys_plot=args.keys_plot,
+    parser = ParserV0(db_type=args.db_type, suffix=args.suffix, keys_plot=args.keys_plot,
                       dir_plot_save=args.dir_plot_save, addr_in=args.addr)
     parser.parse()
 
