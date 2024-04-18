@@ -493,9 +493,30 @@ class DataTextV2C(DataTextV2):
             return thetas[0] + thetas[1] * x + thetas[2] * x ** 2 + thetas[3] * x ** 3 + thetas[4] * x ** 4
 
         humidity_data = self.db['humid'] if 'humid' in self.db else [None] * len(self.thetas_lst)
-        skip = 256
-        thetas_lst_pick = self.thetas_lst[::skip]
-        humidity_data_pick = humidity_data[::skip]
+        # skip = 256
+        # thetas_lst_pick = self.thetas_lst[::skip]
+        # humidity_data_pick = humidity_data[::skip]
+
+        thetas_lst = self.thetas_lst
+        humidity_data = self.db['humid']
+        num_strata = 10
+        samples_per_stratum = 1
+        min_humidity = min(humidity_data)
+        max_humidity = max(humidity_data)
+        stratum_range = (max_humidity - min_humidity) / num_strata
+        thetas_lst_pick = []
+        humidity_data_pick = []
+        for i in range(num_strata):
+            stratum_min = min_humidity + i * stratum_range
+            stratum_max = stratum_min + stratum_range
+            stratum_indices = [j for j, h in enumerate(humidity_data) if stratum_min <= h < stratum_max]
+            if len(stratum_indices) > samples_per_stratum:
+                picked_indices = np.random.choice(stratum_indices, samples_per_stratum, replace=False)
+            else:
+                picked_indices = stratum_indices
+            thetas_lst_pick.extend([thetas_lst[j] for j in picked_indices])
+            humidity_data_pick.extend([humidity_data[j] for j in picked_indices])
+
         colormap = plt.cm.get_cmap('hsv', len(thetas_lst_pick))
         for idx, (thetas, humidity) in enumerate(zip(thetas_lst_pick, humidity_data_pick)):
             x = np.linspace(0, 3300, 1000)
@@ -506,7 +527,9 @@ class DataTextV2C(DataTextV2):
             max_x = x[np.argmax(y)]
             plt.annotate(f'Humidity: {humidity:.2f}%', xy=(max_x, max_y), xytext=(max_x + 100, max_y),
                          arrowprops=dict(facecolor=color, shrink=0.05), fontsize=9)
-        plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        plt.xlabel('h2_raw')
+        plt.ylabel('ppm')
+        # plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
         plt.tight_layout()
         if show:
             plt.show()
