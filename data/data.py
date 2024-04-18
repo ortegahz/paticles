@@ -387,19 +387,26 @@ class DataTextV2(DataBase):
 
      [PARSER] 1, 1, 1, 3, 501, 104, 0, 29, 16 # pm010, pm025, pm100, backward, voc, h2, co, temper, humid
     """
+
     def __init__(self, path_in):
         super().__init__()
+        keys = ('pm010', 'pm025', 'pm100', 'backward', 'voc', 'h2', 'co', 'temper', 'humid')
+        for key in keys:
+            self.db[key] = list()
         self.path_in = path_in
         self.timestamp_cur = ''
         self.h2_raw_cur = -1
+        self.thetas_cur = None
         self.timestamps = list()
         self.h2_raw = list()
+        self.thetas_lst = list()
 
     def update(self):
         with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
             lines = f.readlines()
         for line in lines:
-            if '[PARSER]' not in line and '# RECV ASCII' not in line and 'sraw H2:' not in line:
+            if '[PARSER]' not in line and '# RECV ASCII' not in line and \
+                    'sraw H2:' not in line and '---> thetas' not in line:
                 continue
             if '# RECV ASCII' in line:
                 time_str, _ = line.strip().split(']')
@@ -410,19 +417,20 @@ class DataTextV2(DataBase):
                 h2_val = float(h2_str.strip())
                 self.h2_raw_cur = h2_val
                 continue
+            if '---> thetas' in line:
+                thetas = [float(num) for num in line.split(':')[1].split(',')]
+                self.thetas_cur = thetas
+                continue
             if '#' not in line:
                 continue
             vals, keys = line[9:].strip().split('#')
             vals_lst = vals.split(',')
-            keys_lst = keys.split(',')
             logging.info((vals, keys))
-            if len(self.db.keys()) < 1:
-                for key in keys_lst:
-                    self.db[key[1:]] = list()
             logging.info(self.db.keys())
             assert len(self.db.keys()) == len(vals_lst)
             for key, val in zip(self.db.keys(), vals_lst):
                 self.db[key].append(float(val))
+            self.thetas_lst.append(self.thetas_cur)
             self.h2_raw.append(self.h2_raw_cur)
             self.timestamps.append(self.timestamp_cur)
             self.seq_len += 1
@@ -439,7 +447,7 @@ class DataTextV2(DataBase):
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
         plt.plot(time_stamps, np.array(self.h2_raw).astype(float), label='h2_raw')
         plt.legend()
-        plt.ylim(0, 2048)
+        plt.ylim(0, 512)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(time_format))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
@@ -463,6 +471,48 @@ class DataTextV2(DataBase):
                     line = line.replace('co', 'co,')
                     line = line.replace('rvoc', 'voc')
                 f.write(line)
+
+
+class DataTextV2C(DataTextV2):
+    """
+    format:
+     ...
+     ---> H2 raw: 310.86,  ppm = 0.00,  calib = 0.81
+
+     ---> thetas: 36.06319991483694400000000000000000, -0.22044613967795328000000000000000, ...
+
+     --->T :32.79, CO raw: 2428.76, CO CF: 1.10,  ppm = -24.90   ppm CF: -27.38
+     ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        def curve(x, thetas):
+            return thetas[0] + thetas[1] * x + thetas[2] * x ** 2 + thetas[3] * x ** 3 + thetas[4] * x ** 4
+
+        humidity_data = self.db['humid'] if 'humid' in self.db else [None] * len(self.thetas_lst)
+        skip = 256
+        thetas_lst_pick = self.thetas_lst[::skip]
+        humidity_data_pick = humidity_data[::skip]
+        colormap = plt.cm.get_cmap('hsv', len(thetas_lst_pick))
+        for idx, (thetas, humidity) in enumerate(zip(thetas_lst_pick, humidity_data_pick)):
+            x = np.linspace(0, 3300, 1000)
+            y = curve(x, thetas)
+            color = colormap(idx)
+            plt.plot(x, y, label=f'Humidity: {humidity:.2f}%', color=color, alpha=0.7)
+            max_y = np.max(y)
+            max_x = x[np.argmax(y)]
+            plt.annotate(f'Humidity: {humidity:.2f}%', xy=(max_x, max_y), xytext=(max_x + 100, max_y),
+                         arrowprops=dict(facecolor=color, shrink=0.05), fontsize=9)
+        plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        plt.tight_layout()
+        if show:
+            plt.show()
+        if path_save is not None:
+            plt.savefig(path_save, bbox_inches='tight')
+        plt.close()
 
 
 class DataTextV1(DataBase):
