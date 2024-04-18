@@ -24,7 +24,7 @@ hold on;
 plot(X1, Y, 'b+', X2, Y, 'g+');
 hold off;
 
-l = 20; h = 50; p = 40;
+l = 30; h = 50; p = 40;
 
 yfit1_low = polyval(p1_low, X1);
 yfit1_high = polyval(p1_high, X1);

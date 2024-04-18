@@ -76,7 +76,7 @@ function fit_sensor(X1, X2, Y, temp, humid)
     plot(X2, Y, 'go', X2, yfit2, 'g-');
     hold off;
     xlim([0, 3300]); ylim([0, 700]);
-    fprintf('p1 --> %.32f\n', p1);
+    fprintf('p1 --> %.32f\n', p1); fprintf('min --> %.32f && max --> %.32f \n', min(X1), max(X1));
 %     fprintf('p2 --> %.32f\n', p2);
 %     disp(p1); disp(p2);
     figureHandle = gcf;

@@ -234,7 +234,7 @@ class DataTextV5(DataTextV3):
     03 03 00 05 00 0B EE 15 03 03 00 16 00 30 00 50 00 00 00 00 01 15 00 19 00 44 00 48 00 2E 00 0D 00 08 98 EF
     """
 
-    def __init__(self, path_in, addr='03'):
+    def __init__(self, path_in, addr='04'):
         super().__init__(path_in)
         # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
@@ -365,7 +365,7 @@ class DataTextV2(DataBase):
 
      temperature, temperature_l, temperature_u --> 29.827955, 20.000000, 30.000000
 
-     ---> H2 raw: 341.28,  ppm = 104.33
+    ---> H2 raw: 154.73,  ppm = 3.45,  calib = -54.00
 
      --->T :29.83, CO raw: 2396.63, CO CF: 1.08,  ppm = -7.12   ppm CF: -7.66
 
@@ -409,6 +409,8 @@ class DataTextV2(DataBase):
                 _, h2_str, _ = line.strip().split('H2:')
                 h2_val = float(h2_str.strip())
                 self.h2_raw_cur = h2_val
+                continue
+            if '#' not in line:
                 continue
             vals, keys = line[9:].strip().split('#')
             vals_lst = vals.split(',')
@@ -765,7 +767,7 @@ class DataRT(DataBase):
         #     plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
         #     plt.legend()
         # plt.yticks(np.arange(0, 4096, 4096 / 10))
-        plt.ylim(0, 4096)
+        plt.ylim(0, ALARM_INDICATE_VAL)
         if len(self.timestamps) > 0:
             plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(timestamps_format))
             plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
