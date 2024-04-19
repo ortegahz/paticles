@@ -404,13 +404,17 @@ class DataTextV2(DataBase):
     def update(self):
         with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
             lines = f.readlines()
-        for line in lines:
-            if '[PARSER]' not in line and '# RECV ASCII' not in line and \
-                    'sraw H2:' not in line and '---> thetas' not in line:
-                continue
+        line_cache = ''
+        for i, line in enumerate(lines):
             if '# RECV ASCII' in line:
+                line_cache = lines[i - 2] if i > 1 and lines[i - 2] is not '\n' else ''
                 time_str, _ = line.strip().split(']')
                 self.timestamp_cur = time_str[1:]
+                continue
+            line = line_cache.strip() + line
+            # logging.info(line)
+            if '[PARSER]' not in line and '# RECV ASCII' not in line and \
+                    'sraw H2:' not in line and '---> thetas' not in line:
                 continue
             if 'sraw H2:' in line:
                 _, h2_str, _ = line.strip().split('H2:')
