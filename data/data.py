@@ -169,7 +169,7 @@ class DataTextV3G(DataTextV3):
                 continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.ylim(0, 256)
+        plt.ylim(0, 4096)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
@@ -234,7 +234,7 @@ class DataTextV5(DataTextV3):
     03 03 00 05 00 0B EE 15 03 03 00 16 00 30 00 50 00 00 00 00 01 15 00 19 00 44 00 48 00 2E 00 0D 00 08 98 EF
     """
 
-    def __init__(self, path_in, addr='04'):
+    def __init__(self, path_in, addr='02'):
         super().__init__(path_in)
         # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
@@ -406,11 +406,13 @@ class DataTextV2(DataBase):
             lines = f.readlines()
         line_cache = ''
         for i, line in enumerate(lines):
+            logging.info(f'line current --> {line}')
             if '# RECV ASCII' in line:
                 line_cache = lines[i - 2] if i > 1 and lines[i - 2] is not '\n' else ''
                 time_str, _ = line.strip().split(']')
                 self.timestamp_cur = time_str[1:]
                 continue
+            logging.info(f'line_cache --> {line_cache}')
             line = line_cache.strip() + line
             # logging.info(line)
             if '[PARSER]' not in line and '# RECV ASCII' not in line and \
@@ -425,12 +427,13 @@ class DataTextV2(DataBase):
                 thetas = [float(num) for num in line.split(':')[1].split(',')]
                 self.thetas_cur = thetas
                 continue
-            if '#' not in line:
+            if '#' not in line or not line.startswith(' [PARSER]'):
                 continue
+            logging.info(f'line --> {line}')
             vals, keys = line[9:].strip().split('#')
             vals_lst = vals.split(',')
-            logging.info((vals, keys))
-            logging.info(self.db.keys())
+            # logging.info((vals, keys))
+            # logging.info(self.db.keys())
             assert len(self.db.keys()) == len(vals_lst)
             for key, val in zip(self.db.keys(), vals_lst):
                 self.db[key].append(float(val))
@@ -438,6 +441,7 @@ class DataTextV2(DataBase):
             self.h2_raw.append(self.h2_raw_cur)
             self.timestamps.append(self.timestamp_cur)
             self.seq_len += 1
+            line_cache = ''
 
     def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
         plt.ion()
@@ -451,7 +455,7 @@ class DataTextV2(DataBase):
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
         plt.plot(time_stamps, np.array(self.h2_raw).astype(float), label='h2_raw')
         plt.legend()
-        plt.ylim(0, 512)
+        plt.ylim(0, 4096)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(time_format))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
