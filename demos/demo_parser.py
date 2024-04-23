@@ -6,10 +6,10 @@ from utils.utils import set_logging
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--addr', default='/home/manu/tmp/id3(2).txt')
-    parser.add_argument('--db_type', default='DataTextV3G')
+    parser.add_argument('--addr', default='/home/manu/tmp/Pyrolysis_ID2_1.csv')
+    parser.add_argument('--db_type', default='DataTextV3GC')
     parser.add_argument('--keys_plot', default=None)
-    parser.add_argument('--suffix', default='txt')
+    parser.add_argument('--suffix', default='csv')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_parser_save')
     return parser.parse_args()
 

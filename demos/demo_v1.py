@@ -8,10 +8,10 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/media/manu/data/docs/particles/热解粒子实验数据/国标送检')
+    parser.add_argument('--dir_in', default='/home/manu/tmp/1')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v1')
-    parser.add_argument('--offline_db_type', default='DataTextV5')
-    parser.add_argument('--suffix', default='log')
+    parser.add_argument('--offline_db_type', default='DataTextV3GC')
+    parser.add_argument('--suffix', default='csv')
     return parser.parse_args()
 
 

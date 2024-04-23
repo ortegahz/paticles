@@ -185,6 +185,39 @@ class DataTextV3G(DataTextV3):
         plt.clf()
 
 
+class DataTextV3GC(DataTextV3):
+    """
+    format:
+    Time,PM1.0,Temperature,CO,H2,VOC,Humidity,PM2.5,PM10,RF,BF,RB
+    2024-04-22 16:12:38,30,35,0,0,518,24,45,47,1,8,3
+    2024-04-22 16:12:39,33,35,0,0,518,24,47,49,1,8,3
+    2024-04-22 16:12:40,33,35,0,0,519,24,46,48,1,8,3
+    2024-04-22 16:12:41,33,35,0,0,519,24,46,48,1,8,3
+    ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        self.timestamps = list()
+        del self.db['co_raw']
+        del self.db['h2_raw']
+
+    def update(self):
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
+            lines = f.readlines()
+        for line in lines[1:]:
+            if len(line) < 8:
+                continue
+            line_lst = line.strip().split(',')
+            line_lst_valid = line_lst[1:]
+            for i, key in enumerate(self.db.keys()):
+                self.db[key].append(float(line_lst_valid[i]))
+            self.timestamps.append(line_lst[0])
+            self.seq_len += 1
+
+
 class DataTextV4(DataTextV3):
     """
     format:
@@ -832,8 +865,8 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
-        # timestamps_format = '%Y-%m-%d %H:%M:%S'
+        # timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
+        timestamps_format = '%Y-%m-%d %H:%M:%S'
         if len(self.timestamps) > 0:
             time_stamps = [datetime.strptime(ts, timestamps_format) for ts in self.timestamps]
         else:
