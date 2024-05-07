@@ -10,8 +10,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_in', default='/home/manu/tmp/1')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v1')
-    parser.add_argument('--offline_db_type', default='DataTextV3GC')
-    parser.add_argument('--suffix', default='csv')
+    parser.add_argument('--offline_db_type', default='DataDatV0')
+    parser.add_argument('--suffix', default='DAT')
     return parser.parse_args()
 
 
@@ -32,7 +32,7 @@ def run(args):
                 cur_data_dict[key] = db_offline.db[key][i]
             particles_detector.db.update(**cur_data_dict)
             particles_detector.infer()
-        particles_detector.db.timestamps = db_offline.timestamps
+        # particles_detector.db.timestamps = db_offline.timestamps
         particles_detector.db.plot(pause_time_s=0.1, dir_save=args.dir_plot_save, save_name=file_name, show=False)
 
 

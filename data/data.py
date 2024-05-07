@@ -267,7 +267,7 @@ class DataTextV5(DataTextV3):
     03 03 00 05 00 0B EE 15 03 03 00 16 00 30 00 50 00 00 00 00 01 15 00 19 00 44 00 48 00 2E 00 0D 00 08 98 EF
     """
 
-    def __init__(self, path_in, addr='02'):
+    def __init__(self, path_in, addr='03'):
         super().__init__(path_in)
         # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
@@ -317,7 +317,7 @@ class DataTextV5(DataTextV3):
             self.seq_len += 1
             data_hex_str = data_hex_str[pos + len(head) + 1:]
 
-    def plot(self, pause_time_s=0.01, keys_plot=('pm2.5', 'humid', 'temper',), show=False, path_save=None):
+    def plot(self, pause_time_s=0.01, keys_plot=('pm2.5', 'humid', 'temper', 'voc'), show=False, path_save=None):
         plt.ion()
         plt.title(self.path_in)
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
@@ -327,7 +327,7 @@ class DataTextV5(DataTextV3):
                 continue
             plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
             plt.legend()
-        plt.ylim(0, 256)
+        # plt.ylim(0, 256)
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
         plt.gcf().autofmt_xdate()
@@ -865,8 +865,8 @@ class DataRT(DataBase):
 
     def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
         plt.ion()
-        # timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
-        timestamps_format = '%Y-%m-%d %H:%M:%S'
+        timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
+        # timestamps_format = '%Y-%m-%d %H:%M:%S'
         if len(self.timestamps) > 0:
             time_stamps = [datetime.strptime(ts, timestamps_format) for ts in self.timestamps]
         else:
