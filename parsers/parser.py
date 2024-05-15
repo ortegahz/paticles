@@ -31,7 +31,7 @@ class ParserV0(ParserBase):
         db_obj.update()
         path_save = os.path.join(self.dir_plot_save, os.path.basename(self.path_in))
         path_save = path_save.replace(self.suffix, 'png')
-        db_obj.plot(pause_time_s=0.001, path_save=path_save)
+        db_obj.plot(pause_time_s=0.001, path_save=path_save, keys_plot=self.keys_plot)
 
 
 class ParserV1(ParserBase):

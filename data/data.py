@@ -267,7 +267,7 @@ class DataTextV5(DataTextV3):
     03 03 00 05 00 0B EE 15 03 03 00 16 00 30 00 50 00 00 00 00 01 15 00 19 00 44 00 48 00 2E 00 0D 00 08 98 EF
     """
 
-    def __init__(self, path_in, addr='03'):
+    def __init__(self, path_in, addr='04'):
         super().__init__(path_in)
         # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
         #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
@@ -341,6 +341,37 @@ class DataTextV5(DataTextV3):
         if path_save is not None:
             plt.savefig(path_save)
         plt.clf()
+
+
+class DataTextV6(DataTextV3):
+    """
+    format:
+    <ch, cl, alarm, <13 sigs>>
+    0,39,4096,2000,80,0,10,2847,12,2000,2000,1,152,63,2432,91
+    0,40,4096,2000,80,0,10,2776,12,2000,2000,0,151,63,2431,91
+    0,41,4096,2000,80,0,10,2709,12,2000,2000,0,172,71,2431,91
+    0,42,4096,2000,80,0,10,2634,12,2000,2000,0,165,68,2432,91
+    0,43,4096,2000,80,0,10,2557,12,2000,2000,0,153,63,2432,91
+    0,44,4096,2000,80,0,10,2473,12,2000,2000,0,161,66,2431,90
+    ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__(path_in)
+        # ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #  'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        self.item_pick = 0  # 0 ~ 2
+        self.item_len = 40
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for i in range(self.item_len):
+            idx = self.item_pick * self.item_len + i
+            line_lst = lines[idx].strip().split(',')[3:]
+            for j, key in enumerate(self.keys):
+                self.db[key].append(float(line_lst[j]))
+            self.seq_len += 1
 
 
 class DataDatV0(DataTextV3):

@@ -10,10 +10,18 @@ class ParticlesDetector:
         self.pm025_bg = -1
         self.backward_bg = -1
         self.voc_bg = -1
+        self.humid_bg = -1
 
     def infer(self):
         if self.db.seq_len < ALARM_NAIVE_SEQ_LEN:
             return
+
+        # seq_humid = np.array(self.db.db['humid'][-ALARM_NAIVE_SEQ_LEN:]).astype(float)
+        # self.humid_bg = np.average(seq_humid) if self.humid_bg < 0 else \
+        #     self.humid_bg * (1 - ALARM_NAIVE_BG_LR) + seq_humid[-1] * ALARM_NAIVE_BG_LR
+        # humid_calibrate = np.abs(seq_humid - self.humid_bg)
+        # if np.all(humid_calibrate > ALARM_NAIVE_THRESHOLD_HUMID):
+        #     self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 4
 
         seq_voc = np.array(self.db.db['voc'][-ALARM_NAIVE_SEQ_LEN:]).astype(float)
         self.voc_bg = np.average(seq_voc) if self.voc_bg < 0 else \
