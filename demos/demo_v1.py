@@ -8,9 +8,10 @@ from utils.utils import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/home/manu/tmp/1')
+    parser.add_argument('--dir_in', default='/home/manu/tmp/沈消所委托实验')
     parser.add_argument('--dir_plot_save', default='/home/manu/tmp/demo_save_v1')
     parser.add_argument('--offline_db_type', default='DataTextV5')
+    parser.add_argument('--keys_plot', default=['backward_red', 'voc', 'pm2.5'])
     parser.add_argument('--suffix', default='log')
     return parser.parse_args()
 
@@ -33,7 +34,8 @@ def run(args):
             particles_detector.db.update(**cur_data_dict)
             particles_detector.infer()
         # particles_detector.db.timestamps = db_offline.timestamps
-        particles_detector.db.plot(pause_time_s=0.1, dir_save=args.dir_plot_save, save_name=file_name, show=False)
+        particles_detector.db.plot(pause_time_s=0.1, keys_plot=args.keys_plot,
+                                   dir_save=args.dir_plot_save, save_name=file_name, show=False)
 
 
 def main():
