@@ -374,6 +374,59 @@ class DataTextV6(DataTextV3):
             self.seq_len += 1
 
 
+class DataTextV7(DataBase):
+    """
+    format:
+    17,80,0,5,532,45,26,27,50,112,127,2456,171,state: 0x0 0x0 2024-07-08-17:46:21
+    17,80,0,5,533,45,25,26,50,112,128,2456,171,state: 0x0 0x0 2024-07-08-17:46:22
+    18,80,0,5,534,45,26,27,50,111,127,2456,171,state: 0x0 0x0 2024-07-08-17:46:23
+    19,80,0,5,535,45,26,27,50,111,127,2456,171,state: 0x0 0x0 2024-07-08-17:46:24
+    19,80,0,5,536,45,28,29,50,111,128,2457,171,state: 0x0 0x0 2024-07-08-17:46:25
+    ...
+    """
+
+    def __init__(self, path_in):
+        super().__init__()
+        self.path_in = path_in
+        self.keys = ('forward', 'backward')
+        for key in self.keys:
+            self.db[key] = list()
+        self.magnifications = \
+            (141.6488675, 68.47658, 37.79155058, 18.84206, 9.421031, 4.7105153,
+             2.355258, 1.177629, 0.588814, 0.294407, 0.1472036, 0.073602, 0.036801)
+
+    def update(self):
+        with open(self.path_in, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            _amps, _forward, _backward = line.strip().split(',')[8:8 + 3]
+            _forward, _backward, _amp_forward, _amp_backward = \
+                (int(_forward), int(_backward), (int(_amps) & 0xf0) >> 4, int(_amps) & 0x0f)
+            _forward = _forward / self.magnifications[_amp_forward] * self.magnifications[1]
+            _backward = _backward / self.magnifications[_amp_backward] * self.magnifications[0]
+            self.db['forward'].append(_forward)
+            self.db['backward'].append(_backward)
+            self.seq_len += 1
+
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+        plt.ion()
+        time_idxs = range(self.seq_len)
+        plt.title(self.path_in)
+        keys_plot = self.db.keys() if keys_plot is None else keys_plot
+        for key in keys_plot:
+            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.legend()
+        plt.ylim(0, 1024)
+        if show:
+            mng = plt.get_current_fig_manager()
+            mng.resize(*mng.window.maxsize())
+            plt.show()
+            plt.pause(pause_time_s)
+        if path_save is not None:
+            plt.savefig(path_save)
+        plt.clf()
+
+
 class DataDatV0(DataTextV3):
     """
     format:
