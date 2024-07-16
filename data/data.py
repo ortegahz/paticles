@@ -52,15 +52,15 @@ class DataTextV3(DataBase):
                 self.db[key].append(float(line_lst[i]))
             self.seq_len += 1
 
-    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None):
+    def plot(self, pause_time_s=0.01, keys_plot=None, show=False, path_save=None, idx_s=6200):
         plt.ion()
         time_idxs = range(self.seq_len)
         plt.title(self.path_in)
         keys_plot = self.db.keys() if keys_plot is None else keys_plot
         for key in keys_plot:
-            plt.plot(np.array(time_idxs), np.array(self.db[key]).astype(float), label=key)
+            plt.plot(np.array(time_idxs[idx_s:]), np.array(self.db[key][idx_s:]).astype(float), label=key)
             plt.legend()
-        plt.ylim(0, 4096)
+        plt.ylim(0, 256)
         if show:
             mng = plt.get_current_fig_manager()
             mng.resize(*mng.window.maxsize())
@@ -425,6 +425,47 @@ class DataTextV7(DataBase):
         if path_save is not None:
             plt.savefig(path_save)
         plt.clf()
+
+
+class DataTextV7P(DataTextV3):
+    """
+    format:
+    0,109,6,0,889,72,1,1,16,17,27,2370,1284,state: 0x0 0x0 2024-07-12-14:30:22
+    0,109,6,0,889,72,1,1,16,17,27,2370,1284,state: 0x0 0x0 2024-07-12-14:30:22
+    0,109,6,0,888,72,1,1,16,16,27,2370,1285,state: 0x0 0x0 2024-07-12-14:30:23
+    0,109,6,0,888,72,1,1,16,16,27,2370,1285,state: 0x0 0x0 2024-07-12-14:30:24
+    0,109,6,0,886,72,1,1,16,17,26,2370,1281,state: 0x0 0x0 2024-07-12-14:30:24
+    0,109,6,0,886,72,1,1,16,17,26,2370,1281,state: 0x0 0x0 2024-07-12-14:30:25
+    0,109,6,0,886,72,1,1,16,16,26,2370,1280,state: 0x0 0x0 2024-07-12-14:30:25
+    0,109,6,0,886,72,1,1,16,16,26,2370,1280,state: 0x0 0x0 2024-07-12-14:30:26
+    1,109,6,0,885,72,1,1,16,16,27,2370,1280,state: 0x0 0x0 2024-07-12-14:30:26
+    ...
+    """
+
+    def __init__(self, path_in):
+        # self.keys = \
+        #     ('pm1.0', 'temper', 'co', 'h2', 'voc', 'humid', 'pm2.5', 'pm10',
+        #      'forward_red', 'forward_blue', 'backward_red', 'co_raw', 'h2_raw')
+        super().__init__(path_in)
+        self.magnifications = \
+            (141.6488675, 68.47658, 37.79155058, 18.84206, 9.421031, 4.7105153,
+             2.355258, 1.177629, 0.588814, 0.294407, 0.1472036, 0.073602, 0.036801)
+
+    def update(self):
+        with open(self.path_in, 'r', encoding='ISO-8859-1') as f:
+            lines = f.readlines()
+        for line in lines:
+            line_lst = line.strip().split(',')[:-1]
+            for i, key in enumerate(self.keys):
+                self.db[key].append(float(line_lst[i]))
+            _amps, _forward, _backward = line_lst[-5:-5 + 3]
+            _forward, _backward, _amp_forward, _amp_backward = \
+                (int(_forward), int(_backward), (int(_amps) & 0xf0) >> 4, int(_amps) & 0x0f)
+            _forward = _forward / self.magnifications[_amp_forward] * self.magnifications[1]
+            _backward = _backward / self.magnifications[_amp_backward] * self.magnifications[0]
+            self.db['forward_blue'][-1] = _forward
+            self.db['backward_red'][-1] = _backward
+            self.seq_len += 1
 
 
 class DataDatV0(DataTextV3):
@@ -947,7 +988,7 @@ class DataRT(DataBase):
         # self.seq_len = self.seq_len + 1 if self.seq_len < self.max_seq_len else self.max_seq_len
         self.seq_len = self.seq_len + 1
 
-    def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True):
+    def plot(self, pause_time_s=0.01, keys_plot=None, dir_save=None, save_name=None, show=True, idx_s=0):
         plt.ion()
         timestamps_format = '%Y-%m-%d %H:%M:%S.%f'
         # timestamps_format = '%Y-%m-%d %H:%M:%S'
@@ -959,10 +1000,10 @@ class DataRT(DataBase):
         for key in keys_plot:
             if key == 'timestamps':
                 continue
-            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+            plt.plot(time_stamps[idx_s:], np.array(self.db[key])[idx_s:].astype(float), label=key)
             plt.legend()
         for key in self.keys_info:  # TODO: double-plot when keys_plot is None
-            plt.plot(time_stamps, np.array(self.db[key]).astype(float), label=key)
+            plt.plot(time_stamps[idx_s:], np.array(self.db[key])[idx_s:].astype(float), label=key)
             plt.legend()
         # plt.yticks(np.arange(0, 4096, 4096 / 10))
         plt.ylim(0, ALARM_INDICATE_VAL)
@@ -978,8 +1019,8 @@ class DataRT(DataBase):
                                    arrowprops=dict(color='red', arrowstyle='->'))
             plt.xticks(rotation=45)
             plt.tight_layout()
-        mng = plt.get_current_fig_manager()
-        mng.resize(*mng.window.maxsize())
+        # mng = plt.get_current_fig_manager()
+        # mng.resize(*mng.window.maxsize())
         if dir_save is not None and save_name is not None:
             plt.savefig(os.path.join(dir_save, save_name))
         if show:
