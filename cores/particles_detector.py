@@ -11,6 +11,7 @@ class ParticlesDetector:
         self.backward_bg = -1
         self.voc_bg = -1
         self.humid_bg = -1
+        self.humid_suppression = 0
 
     def infer(self):
         if self.db.seq_len < ALARM_NAIVE_SEQ_LEN:
@@ -48,3 +49,28 @@ class ParticlesDetector:
         seq_backward_calibrate = seq_backward - self.backward_bg
         if np.all(seq_backward_calibrate > ALARM_NAIVE_THRESHOLD_SMOKE):
             self.db.db['alarm'][-1] = ALARM_INDICATE_VAL
+
+    def infer_smoke(self):
+        if self.db.seq_len < ALARM_NAIVE_SEQ_LEN:
+            return
+
+        _humid_alarm, _smoke_alarm = False, False
+
+        seq_humid = np.array(self.db.db['humid'][-ALARM_NAIVE_SEQ_LEN:]).astype(float)
+        self.humid_bg = np.average(seq_humid) if self.humid_bg < 0 else \
+            self.humid_bg * (1 - ALARM_NAIVE_BG_LR) + seq_humid[-1] * ALARM_NAIVE_BG_LR
+        humid_calibrate = seq_humid - self.humid_bg
+        if np.all(humid_calibrate > ALARM_NAIVE_THRESHOLD_HUMID):
+            _humid_alarm = True
+            self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 2
+
+        self.humid_suppression = HUMIDITY_SUPPRESSION if _humid_alarm > 0 else self.humid_suppression
+        self.humid_suppression = self.humid_suppression - 1 if self.humid_suppression > 0 else 0
+
+        seq_backward = np.array(self.db.db['backward_red'][-ALARM_NAIVE_SEQ_LEN:]).astype(float)
+        self.backward_bg = np.average(seq_backward) if self.backward_bg < 0 else \
+            self.backward_bg * (1 - ALARM_NAIVE_BG_LR) + seq_backward[-1] * ALARM_NAIVE_BG_LR
+        seq_backward_calibrate = seq_backward - self.backward_bg
+        if np.all(seq_backward_calibrate > ALARM_NAIVE_THRESHOLD_SMOKE) and self.humid_suppression == 0:
+            _smoke_alarm = True
+            self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 100 * 99
