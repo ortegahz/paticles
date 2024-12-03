@@ -456,6 +456,8 @@ class DataTextV7P(DataTextV3):
             lines = f.readlines()
         for line in lines:
             line_lst = line.strip().split(',')[:-1]
+            if len(line_lst) < 13:
+                continue
             for i, key in enumerate(self.keys):
                 self.db[key].append(float(line_lst[i]))
             _amps, _forward, _backward = line_lst[-5:-5 + 3]
