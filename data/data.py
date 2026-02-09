@@ -463,8 +463,8 @@ class DataTextV7P(DataTextV3):
             _amps, _forward, _backward = line_lst[-5:-5 + 3]
             _forward, _backward, _amp_forward, _amp_backward = \
                 (int(_forward), int(_backward), (int(_amps) & 0xf0) >> 4, int(_amps) & 0x0f)
-            _forward = _forward / self.magnifications[_amp_forward] * self.magnifications[1]
-            _backward = _backward / self.magnifications[_amp_backward] * self.magnifications[0]
+            # _forward = _forward / self.magnifications[_amp_forward] * self.magnifications[1]
+            # _backward = _backward / self.magnifications[_amp_backward] * self.magnifications[0]
             self.db['forward_blue'][-1] = _forward
             self.db['backward_red'][-1] = _backward
             self.seq_len += 1

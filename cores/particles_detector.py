@@ -43,11 +43,10 @@ class ParticlesDetector:
         if np.all(seq_pm025_calibrate > ALARM_NAIVE_THRESHOLD_PM025):
             _pm025_alarm = True
 
-        # if _humid_alarm:
-        #     self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 2
+        if _humid_alarm:
+            self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 2
 
         if _voc_alarm and _pm025_alarm and self.humid_suppression == 0:
-        # if _pm025_alarm:
             self.db.db['alarm'][-1] = ALARM_INDICATE_VAL
 
     def infer_smoke(self):
@@ -71,6 +70,7 @@ class ParticlesDetector:
         self.backward_bg = np.average(seq_backward) if self.backward_bg < 0 else \
             self.backward_bg * (1 - ALARM_NAIVE_BG_LR) + seq_backward[-1] * ALARM_NAIVE_BG_LR
         seq_backward_calibrate = seq_backward - self.backward_bg
-        if np.all(seq_backward_calibrate > ALARM_NAIVE_THRESHOLD_SMOKE) and self.humid_suppression == 0:
+        if np.all(seq_backward_calibrate > ALARM_NAIVE_THRESHOLD_SMOKE * ALARM_NAIVE_THRESHOLD_SENSITIVE) and self.humid_suppression == 0:
+        # if np.all(seq_backward_calibrate > ALARM_NAIVE_THRESHOLD_SMOKE * ALARM_NAIVE_THRESHOLD_SENSITIVE):
             _smoke_alarm = True
             self.db.db['alarm'][-1] = ALARM_INDICATE_VAL / 100 * 99

@@ -41,7 +41,7 @@ plot(X2, yfit_calc, 'y+', 'DisplayName', sprintf('s2 40 calc'));
 hold off;
 
 title(sprintf('h%d l%d p%d', h, l, p));
-% legend show;
+legend show;
 
 %%
 

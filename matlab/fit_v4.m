@@ -49,6 +49,7 @@ hold off;
 ylim([0, 700]);
 xlabel('raw');
 ylabel('ppm');
+% legend show;
 
 %%
 function [p1, p2] = fit_sensor(X1, X2, Y, temp, humid)
